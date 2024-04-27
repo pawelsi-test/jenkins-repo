@@ -9,6 +9,13 @@ pipeline {
 
     stages {
         stage('Build') {
+            when {
+                beforeAgent true
+                expression {
+                    def commitMessage = sh(script: "git log -1 --pretty=%B", returnStdout: true).trim()
+                    return commitMessage.startsWith("[ci skip]")
+                }
+            }
             steps {
                 // Get some code from a GitHub repository
                 git url: 'https://github.com/rechandler12/szkolenie-ci-jenkins-example.git', branch: 'main'
