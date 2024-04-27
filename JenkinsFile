@@ -2,36 +2,59 @@ pipeline {
     agent any
 
     tools {
-        // Install the Maven version configured as "M3" and add it to the path.
-        maven "maven-3"
-        jdk "jdk-17"
+        jdk 'jdk-17'
+        maven 'maven-3'
     }
 
     stages {
-        stage('Build') {
+        stage('Clean') {
             when {
-                beforeAgent true
-                expression {
-                    def commitMessage = sh(script: "git log -1 --pretty=%B", returnStdout: true).trim()
-                    return commitMessage.startsWith("[ci skip]")
+                not {
+                    changelog '.*^\\[ci skip\\] .+$'
                 }
             }
             steps {
-                // Get some code from a GitHub repository
-                git url: 'https://github.com/rechandler12/szkolenie-ci-jenkins-example.git', branch: 'main'
-                // Run Maven on a Unix agent.
-                sh "mvn clean install"
+                cleanWs()
+            }
+        }
+
+        stage('Checkout') {
+            when {
+                not {
+                    changelog '.*^\\[ci skip\\] .+$'
+                }
+            }
+            steps {
+                git branch: 'main', url: 'https://github.com/spring-projects/spring-petclinic.git'
+            }
+        }
+
+        stage('Build') {
+            when {
+                not {
+                    changelog '.*^\\[ci skip\\] .+$'
+                }
+            }
+            steps {
+                sh 'mvn clean verify'
             }
         }
     }
 
     post {
-        // If Maven was able to run the tests, even if some of the test
-        // failed, record the test results and archive the jar file.
-        success {
-            junit '**/target/surefire-reports/TEST-*.xml'
-            archiveArtifacts 'target/*.jar'
-            slackSend color: "good", message: "Message from Jenkins Pipeline"
+        always {
+            notify(":heart_eyes: build *${env.$BUILD_TAG}* has ended (<${env.BUILD_URL}|Open>)")
+            junit allowEmptyResults: true, testResults: '**/target/**/TEST-*.xml'
         }
     }
+}
+
+def notify(def color = 'good', def message) {
+    slackSend(
+            channel: 'pawelsi-jenkins',
+            color: color,
+            message: message,
+            tokenCredentialId: 'slack-token',
+            username: 'Jenkins-Backend'
+    )
 }
