@@ -3,10 +3,10 @@ properties([
     [
       $class: 'ChoiceParameter',
       choiceType: 'PT_SINGLE_SELECT',
-      name: 'Env',
+      name: 'Environment',
       script: [
         $class: 'ScriptlerScript',
-        scriptlerScriptId:'env.groovy'
+        scriptlerScriptId:'Environments.groovy'
       ]
     ],
     [
@@ -16,9 +16,9 @@ properties([
       referencedParameters: 'Environment',
       script: [
         $class: 'ScriptlerScript',
-        scriptlerScriptId:'host.groovy',
+        scriptlerScriptId:'HostsInEnv.groovy',
         parameters: [
-          [name:'env', value: '$Env']
+          [name:'Environment', value: '$Environment']
         ]
       ]
    ]
@@ -30,8 +30,8 @@ pipeline {
   stages {
     stage('Build') {
       steps {
-        echo "srodowisko: ${params.Env}"
-        echo "apkikacja: ${params.Host}"
+        echo "${params.Environment}"
+        echo "${params.Host}"
       }
     }
   }
