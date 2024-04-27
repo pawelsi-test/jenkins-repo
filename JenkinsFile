@@ -6,7 +6,7 @@ properties([
       name: 'Env',
       script: [
         $class: 'ScriptlerScript',
-        scriptlerScriptId:'Env'
+        scriptlerScriptId:'env.groovy'
       ]
     ],
     [
@@ -16,7 +16,7 @@ properties([
       referencedParameters: 'Environment',
       script: [
         $class: 'ScriptlerScript',
-        scriptlerScriptId:'host',
+        scriptlerScriptId:'host.groovy',
         parameters: [
           [name:'env', value: '$Env']
         ]
