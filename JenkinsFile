@@ -51,10 +51,9 @@ pipeline {
 
 def notify(def color = 'good', def message) {
     slackSend(
-            channel: 'pawelsi-jenkins',
+            channel: '#pawelsi-jenkins',
             color: color,
             message: message,
-            tokenCredentialId: 'slack-token',
             username: 'Jenkins-Backend'
     )
 }
