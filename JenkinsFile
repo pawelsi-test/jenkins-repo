@@ -1,62 +1,38 @@
+properties([
+  parameters([
+    [
+      $class: 'ChoiceParameter',
+      choiceType: 'PT_SINGLE_SELECT',
+      name: 'Env',
+      script: [
+        $class: 'ScriptlerScript',
+        scriptlerScriptId:'Env'
+      ]
+    ],
+    [
+      $class: 'CascadeChoiceParameter',
+      choiceType: 'PT_SINGLE_SELECT',
+      name: 'Host',
+      referencedParameters: 'Environment',
+      script: [
+        $class: 'ScriptlerScript',
+        scriptlerScriptId:'host',
+        parameters: [
+          [name:'env', value: '$Env']
+        ]
+      ]
+   ]
+ ])
+])
+
 pipeline {
-    agent any
-//    triggers {
-//        cron('*/1 * * * *')
-//   }
-
-    tools {
-        jdk 'jdk-17'
-        maven 'maven-3'
+  agent any
+  stages {
+    stage('Build') {
+      steps {
+        echo "srodowisko: ${params.Env}"
+        echo "apkikacja: ${params.Host}"
+      }
     }
-
-    stages {
-        stage('Clean') {
-            when {
-                not {
-                    changelog '.*^\\[ci skip\\] .+$'
-                }
-            }
-            steps {
-                cleanWs()
-            }
-        }
-
-        stage('Checkout') {
-            when {
-                not {
-                    changelog '.*^\\[ci skip\\] .+$'
-                }
-            }
-            steps {
-                git branch: 'main', url: 'https://github.com/spring-projects/spring-petclinic.git'
-            }
-        }
-
-        stage('Build') {
-            when {
-                not {
-                    changelog '.*^\\[ci skip\\] .+$'
-                }
-            }
-            steps {
-                sh 'mvn clean verify'
-            }
-        }
-    }
-
-    post {
-        always {
-            notify(":heart_eyes: build *${env.$BUILD_TAG}* has ended (<${env.BUILD_URL}|Open>)")
-            junit allowEmptyResults: true, testResults: '**/target/**/TEST-*.xml'
-        }
-    }
-}
-
-def notify(def color = 'good', def message) {
-    slackSend(
-            channel: '#pawelsi-jenkins',
-            color: color,
-            message: message,
-            username: 'Jenkins-Backend'
-    )
+  }
 }
